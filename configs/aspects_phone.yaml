@@ -1,0 +1,68 @@
+domain: phone
+aspects:
+- l1: 价格与性价比
+  l2:
+    价格: aspects/phone/lexicons/价格与性价比__价格.txt
+    性价比: aspects/phone/lexicons/价格与性价比__性价比.txt
+- l1: 性能与游戏
+  l2:
+    性能: aspects/phone/lexicons/性能与游戏__性能.txt
+    芯片与处理器: aspects/phone/lexicons/性能与游戏__芯片与处理器.txt
+    内存与存储: aspects/phone/lexicons/性能与游戏__内存与存储.txt
+    游戏体验: aspects/phone/lexicons/性能与游戏__游戏体验.txt
+- l1: 续航与充电
+  l2:
+    续航: aspects/phone/lexicons/续航与充电__续航.txt
+    充电与快充: aspects/phone/lexicons/续航与充电__充电与快充.txt
+- l1: 屏幕与显示
+  l2:
+    亮度与户外: aspects/phone/lexicons/屏幕与显示__亮度与户外.txt
+    护眼与调光: aspects/phone/lexicons/屏幕与显示__护眼与调光.txt
+    刷新率与触控: aspects/phone/lexicons/屏幕与显示__刷新率与触控.txt
+    色彩与分辨率: aspects/phone/lexicons/屏幕与显示__色彩与分辨率.txt
+- l1: 影像与视频
+  l2:
+    拍照综合: aspects/phone/lexicons/影像与视频__拍照综合.txt
+    夜景: aspects/phone/lexicons/影像与视频__夜景.txt
+    人像: aspects/phone/lexicons/影像与视频__人像.txt
+    视频与防抖: aspects/phone/lexicons/影像与视频__视频与防抖.txt
+    变焦与镜头: aspects/phone/lexicons/影像与视频__变焦与镜头.txt
+    对焦与抓拍: aspects/phone/lexicons/影像与视频__对焦与抓拍.txt
+- l1: 系统与软件
+  l2:
+    系统体验: aspects/phone/lexicons/系统与软件__系统体验.txt
+    广告与推送: aspects/phone/lexicons/系统与软件__广告与推送.txt
+    BUG与更新: aspects/phone/lexicons/系统与软件__BUG与更新.txt
+    应用与后台: aspects/phone/lexicons/系统与软件__应用与后台.txt
+- l1: 信号与连接
+  l2:
+    蜂窝信号与通话: aspects/phone/lexicons/信号与连接__蜂窝信号与通话.txt
+    WiFi与蓝牙: aspects/phone/lexicons/信号与连接__WiFi与蓝牙.txt
+    定位与NFC: aspects/phone/lexicons/信号与连接__定位与NFC.txt
+- l1: 外观与做工
+  l2:
+    外观设计: aspects/phone/lexicons/外观与做工__外观设计.txt
+    手感与重量: aspects/phone/lexicons/外观与做工__手感与重量.txt
+    做工与材质: aspects/phone/lexicons/外观与做工__做工与材质.txt
+- l1: 发热与散热
+  l2:
+    发热: aspects/phone/lexicons/发热与散热__发热.txt
+    散热与降频: aspects/phone/lexicons/发热与散热__散热与降频.txt
+- l1: 音频与振感
+  l2:
+    扬声器与音质: aspects/phone/lexicons/音频与振感__扬声器与音质.txt
+    马达与震动: aspects/phone/lexicons/音频与振感__马达与震动.txt
+- l1: 可靠性与服务
+  l2:
+    质量与故障: aspects/phone/lexicons/可靠性与服务__质量与故障.txt
+    售后服务: aspects/phone/lexicons/可靠性与服务__售后服务.txt
+    物流与包装: aspects/phone/lexicons/可靠性与服务__物流与包装.txt
+settings:
+  coverage_gate:
+    l1_min_rate: 0.85
+    l2_min_rate: 0.7
+    unclassified_max_rate: 0.1
+  match:
+    engine: flashtext
+    dedup_hits: true
+    case_sensitive: false

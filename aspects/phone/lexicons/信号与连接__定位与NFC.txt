@@ -1,0 +1,5 @@
+# one term per line
+定位
+GPS
+NFC
+红外

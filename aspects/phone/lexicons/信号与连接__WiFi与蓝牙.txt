@@ -1,0 +1,6 @@
+# one term per line
+延迟
+断连
+热点
+蓝牙
+WiFi
