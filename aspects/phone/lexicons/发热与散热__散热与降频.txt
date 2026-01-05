@@ -1,0 +1,7 @@
+# one term per line
+散热
+温控
+热管
+降频
+均热板
+VC

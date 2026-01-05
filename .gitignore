@@ -1,0 +1,32 @@
+cd C:\Users\weish\ABSA
+
+@"
+# Python venv
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Test / build cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# Local env
+.env
+.env.*
+
+# Project outputs (按需保留/放开)
+outputs/
+"@ | Out-File -Encoding utf8 -Append .gitignore

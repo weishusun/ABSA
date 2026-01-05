@@ -1,5 +1,42 @@
-typer
-pandas
-pyarrow
-pyyaml
-orjson
+# Core pipeline
+typer[all]>=0.12.3
+pandas>=2.2.2
+pyarrow>=17.0.0
+PyYAML>=6.0.1
+orjson>=3.10.7
+
+# I/O, tracing, utilities
+tqdm>=4.66.5
+loguru>=0.7.2
+python-dateutil>=2.9.0.post0
+xxhash>=3.5.0
+regex>=2024.7.24
+beautifulsoup4>=4.12.3
+lxml>=5.3.0
+
+# Excel export
+openpyxl>=3.1.5
+XlsxWriter>=3.2.0
+
+# Chinese text processing (lightweight)
+jieba>=0.42.1
+
+# ABSA / NLP modeling (inference + optional few-shot training)
+transformers>=4.44.2
+accelerate>=0.33.0
+sentence-transformers>=3.0.1
+setfit>=1.0.3
+datasets>=2.20.0
+scikit-learn>=1.5.1
+
+# Torch note:
+# On Windows + RTX 4060, it's often best to install torch via the official command for your CUDA build.
+# If you still want pip to manage it, uncomment the line below:
+# torch>=2.3.0
+
+# Optional quantization (mainly works well on Linux; Windows support varies)
+# bitsandbytes>=0.43.3 ; platform_system != "Windows"
+
+# Dev / quality (optional)
+pytest>=8.3.2
+ruff>=0.6.9
