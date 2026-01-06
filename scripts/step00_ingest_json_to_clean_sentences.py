@@ -64,30 +64,43 @@ def gen_doc_id(path: str, idx: int) -> str:
 
 
 def load_json_records(path: Path) -> Iterable[Tuple[Dict, int]]:
-    suffix = path.suffix.lower()
-    if suffix == ".jsonl":
-        with path.open("r", encoding="utf-8") as f:
+    def _iter_jsonl(p: Path) -> Iterable[Tuple[Dict, int]]:
+        with p.open("r", encoding="utf-8-sig") as f:
             for i, line in enumerate(f):
                 line = line.strip()
                 if not line:
                     continue
                 try:
                     obj = json.loads(line)
-                    if isinstance(obj, dict):
-                        yield obj, i
-                    else:
-                        continue
-                except Exception:
-                    raise
-    else:
-        with path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        if isinstance(data, list):
-            for i, obj in enumerate(data):
+                except json.JSONDecodeError:
+                    continue
                 if isinstance(obj, dict):
                     yield obj, i
-        elif isinstance(data, dict):
-            yield data, 0
+
+    suffix = path.suffix.lower()
+
+    # .jsonl 明确走逐行
+    if suffix == ".jsonl":
+        yield from _iter_jsonl(path)
+        return
+
+    # .json：先尝试标准 JSON（对象/数组），失败且为 Extra data 时回退 JSONL
+    try:
+        with path.open("r", encoding="utf-8-sig") as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        # 典型：文件实际是 JSONL（每行一个 JSON），但扩展名是 .json
+        if getattr(e, "msg", "") == "Extra data" or "Extra data" in str(e):
+            yield from _iter_jsonl(path)
+            return
+        raise
+
+    if isinstance(data, list):
+        for i, obj in enumerate(data):
+            if isinstance(obj, dict):
+                yield obj, i
+    elif isinstance(data, dict):
+        yield data, 0
 
 
 def ensure_dir(p: Path) -> None:
@@ -161,7 +174,7 @@ def main() -> int:
         ]
     )
 
-    writer_opts = dict(base_dir=str(dataset_dir), schema=schema, compression="zstd")
+    writer_opts = dict(compression="zstd")
 
     processed = 0
 
@@ -217,13 +230,16 @@ def main() -> int:
 
             if len(out_rows) >= chunk_size:
                 table = pa.Table.from_pylist(out_rows, schema=schema)
-                pq.write_to_dataset(table, **writer_opts)
+                out_root = Path(args.output)
+                out_root.mkdir(parents=True, exist_ok=True)
+                pq.write_to_dataset(table, root_path=str(out_root), **writer_opts)
                 out_rows.clear()
 
         if out_rows:
             table = pa.Table.from_pylist(out_rows, schema=schema)
-            pq.write_to_dataset(table, **writer_opts)
-
+            out_root = Path(args.output)
+            out_root.mkdir(parents=True, exist_ok=True)
+            pq.write_to_dataset(table, root_path=str(out_root), **writer_opts)
         append_manifest(
             manifest_fp,
             {
