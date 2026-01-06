@@ -1,0 +1,20 @@
+usage: step00_ingest_json_to_clean_sentences.py [-h] --domain DOMAIN
+                                                [--data-root DATA_ROOT]
+                                                [--output OUTPUT] [--resume]
+                                                [--max-files MAX_FILES]
+                                                [--max-docs MAX_DOCS]
+                                                [--chunk-size CHUNK_SIZE]
+
+options:
+  -h, --help            show this help message and exit
+  --domain DOMAIN
+  --data-root DATA_ROOT
+                        root dir of raw JSON/JSONL; default data/<domain>
+  --output OUTPUT       output parquet path or dataset dir; default
+                        outputs/<domain>/clean_sentences.parquet
+  --resume              skip files already in ingest_manifest.jsonl
+  --max-files MAX_FILES
+                        limit number of files for debug
+  --max-docs MAX_DOCS   limit total docs for debug
+  --chunk-size CHUNK_SIZE
+                        rows per parquet write chunk

@@ -50,6 +50,27 @@ python -m review_pipeline.cli clean --domain phone --input data/phone --output o
 - 处理进度会以 INFO 级别输出。
 - `state.json` 记录文件 hash/mtime/size，未变化文件会被跳过。
 
+## Route B 运行入口
+- 配置目录重排：`configs/domains/<domain>/{aspects.yaml,domain.yaml}`，旧路径仍可用。
+- 统一输出：`outputs/<domain>/runs/<run_id>/step01_pairs...web_exports`，pipeline 会写 `meta/run.json`。
+- 运行示例：
+  ```powershell
+  python -u .\scripts\route_b_sentiment\pipeline.py `
+    --domain phone `
+    --run-id 20260105_phone_v0 `
+    --input-aspect-sentences .\outputs\phone\aspect_sentences.parquet `
+    --steps "01,02,03,04,05,web"
+  ```
+- 每个域的 smoke/full PS 入口：`scripts/domains/<domain>/run_smoke.ps1`、`run_full.ps1`。
+
+更多细节见 `docs/STRUCTURE.md`。
+
+## 端到端接入（含 Step00）
+- 将原始 JSON/JSONL 放入 `data/<domain>/<brand>/<model>/`。
+- 运行：`python -u .\scripts\pipeline_e2e.py --domain phone --run-id 20260105_phone`
+  - steps 默认 `00,tag,01,02,03,04,05,web`，可通过 `--steps` 调整。
+- 域级全量入口已更新为调用 e2e：`scripts/domains/<domain>/run_full.ps1`。
+
 ## 开发提示
 - 默认使用 pandas + pyarrow 写 Parquet，缺失 pyarrow 时自动退回 CSV。
 - JSON 解析优先使用 orjson，未安装时自动使用内置 json。

@@ -1,0 +1,9 @@
+usage: pipeline_e2e.py [-h] --domain DOMAIN [--run-id RUN_ID] [--steps STEPS]
+                       [--resume]
+
+options:
+  -h, --help       show this help message and exit
+  --domain DOMAIN
+  --run-id RUN_ID  run id; default {YYYYMMDD}_{domain}_e2e
+  --steps STEPS    comma steps: 00,tag,01..05,web
+  --resume
