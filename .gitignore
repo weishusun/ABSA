@@ -1,32 +1,26 @@
-cd C:\Users\weish\ABSA
-
-@"
-# Python venv
+# environments
 .venv/
 venv/
+.env
+.env.*
 
 # IDE
 .idea/
 .vscode/
 
-# Python cache
+# python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Test / build cache
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# build
 build/
 dist/
 *.egg-info/
 
-# Local env
-.env
-.env.*
-
-# Project outputs (按需保留/放开)
+# large outputs / runtime artifacts
 outputs/
-"@ | Out-File -Encoding utf8 -Append .gitignore
