@@ -55,6 +55,31 @@ def outputs_root_of(workspace_root: Path) -> Path:
 def ensure_dir(p: Path) -> None:
     p.mkdir(parents=True, exist_ok=True)
 
+def _has_json_or_jsonl(root: Path) -> bool:
+    if not root.exists():
+        return False
+    # 任意命中一个文件即可
+    for pat in ("*.json", "*.jsonl"):
+        if any(root.rglob(pat)):
+            return True
+    return False
+
+
+def resolve_step00_data_root(domain: str, workspace_root: Path, repo_root: Path) -> Path:
+    ws_candidate = workspace_root / "data" / domain
+    repo_candidate = repo_root / "data" / domain
+
+    if _has_json_or_jsonl(ws_candidate):
+        return ws_candidate
+    if _has_json_or_jsonl(repo_candidate):
+        return repo_candidate
+
+    raise SystemExit(
+        "[FATAL] Step00 找不到输入数据（json/jsonl）。请确认以下任一路径存在数据：\n"
+        f"  - {ws_candidate}\n"
+        f"  - {repo_candidate}\n"
+        "建议：将原始评论数据放到 <workspace>/data/<domain>/ 下，便于跨机器复用。"
+    )
 
 def run_cmd(cmd: List[str], cwd: Optional[Path] = None) -> None:
     cwd = cwd or ROOT
@@ -179,7 +204,9 @@ def main() -> int:
     # Step 00
     if "00" in steps:
         meta["steps_executed"].append("00")
-        data_root = (ROOT / "data" / domain)
+        data_root = resolve_step00_data_root(domain, workspace_root, ROOT)
+        print(f"[INFO] Step00 data-root resolved: {data_root}", flush=True)
+
         cmd = [
             sys.executable,
             "-u",
