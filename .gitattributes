@@ -1,4 +1,6 @@
-# Python / config / docs use LF across platforms
+* text=auto
+
+# LF for code/docs
 *.py     text eol=lf
 *.yaml   text eol=lf
 *.yml    text eol=lf
@@ -7,6 +9,15 @@
 *.md     text eol=lf
 *.txt    text eol=lf
 
-# Windows scripts keep CRLF
+# CRLF for Windows scripts
 *.ps1    text eol=crlf
 *.bat    text eol=crlf
+*.cmd    text eol=crlf
+
+# binaries
+*.parquet binary
+*.xlsx    binary
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.zip     binary
