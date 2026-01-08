@@ -1,0 +1,18 @@
+Usage: python -m review_pipeline.cli [OPTIONS]
+
+Run cleaning pipeline.
+
++- Options -------------------------------------------------------------------+
+| *  --domain         TEXT                  Domain name:                      |
+|                                           phone/car/laptop/beauty           |
+|                                           [required]                        |
+| *  --input          DIRECTORY             Input directory [required]        |
+| *  --output         DIRECTORY             Output directory [required]       |
+| *  --config         FILE                  Domain config [required]          |
+|    --workers        INTEGER RANGE [x>=1]  Number of workers for I/O heavy   |
+|                                           steps                             |
+|                                           [default: 1]                      |
+|    --force                                Force reprocess files even if     |
+|                                           unchanged                         |
+|    --help                                 Show this message and exit.       |
++-----------------------------------------------------------------------------+

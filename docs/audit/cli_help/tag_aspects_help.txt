@@ -1,0 +1,19 @@
+usage: tag_aspects.py [-h] --input INPUT --config CONFIG --output-dir
+                      OUTPUT_DIR [--batch-size BATCH_SIZE]
+                      [--uncovered-sample UNCOVERED_SAMPLE]
+                      [--uncovered-topk UNCOVERED_TOPK]
+                      [--example-k EXAMPLE_K]
+
+options:
+  -h, --help            show this help message and exit
+  --input INPUT         clean_sentences.parquet
+  --config CONFIG       configs/aspects_phone.yaml
+  --output-dir OUTPUT_DIR
+                        输出目录，例如 outputs/phone
+  --batch-size BATCH_SIZE
+  --uncovered-sample UNCOVERED_SAMPLE
+                        未覆盖句子抽样量（用于挖漏网词）
+  --uncovered-topk UNCOVERED_TOPK
+                        未覆盖 top terms 输出数量
+  --example-k EXAMPLE_K
+                        每个未覆盖 term 保存例句数量

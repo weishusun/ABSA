@@ -22,6 +22,31 @@ os.environ["TRANSFORMERS_DISABLE_SAFE_TENSORS_CONVERSION"] = "1"
 
 LABEL2ID = {"NEG": 0, "NEU": 1, "POS": 2}
 ID2LABEL = {v: k for k, v in LABEL2ID.items()}
+class WeightedTrainer(Trainer):
+    def __init__(self, *args, class_weights=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if class_weights is None:
+            self.class_weights = None
+        else:
+            # class_weights: list[float] with length = num_labels
+            self.class_weights = torch.tensor(class_weights, dtype=torch.float)
+
+    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
+        labels = inputs.get("labels")
+        # 不把 labels 传给模型，避免走模型自带的 unweighted loss
+        model_inputs = {k: v for k, v in inputs.items() if k != "labels"}
+
+        outputs = model(**model_inputs)
+        logits = outputs.get("logits")
+
+        if self.class_weights is not None:
+            w = self.class_weights.to(logits.device)
+            loss_fct = torch.nn.CrossEntropyLoss(weight=w)
+        else:
+            loss_fct = torch.nn.CrossEntropyLoss()
+
+        loss = loss_fct(logits.view(-1, logits.size(-1)), labels.view(-1))
+        return (loss, outputs) if return_outputs else loss
 
 
 def build_text(tokenizer, l1: str, l2: str, sent: str) -> str:
@@ -199,14 +224,14 @@ def main():
         return {"acc": float((preds == labels).mean())}
 
     trainer_cls = WeightedTrainer if args.use_class_weight else Trainer
-    trainer = trainer_cls(
+    trainer = WeightedTrainer(
         model=model,
         args=training_args,
         train_dataset=train_ds,
         eval_dataset=valid_ds,
-        compute_metrics=compute_metrics,
+        tokenizer=tokenizer,
         data_collator=data_collator,
-        class_weights=class_weights if args.use_class_weight else None,
+        class_weights=class_weights,
     )
 
     resume_ckpt = None

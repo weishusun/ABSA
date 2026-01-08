@@ -1,0 +1,22 @@
+domain: phone
+content_field: content
+url_field: url
+platform_field: platform
+ctime_field: ctime
+like_field: like_count
+reply_field: reply_count
+brand_override:
+model_override:
+keep_emoji: false
+keep_english: true
+min_length: 3
+noise_suffix_patterns:
+  - "(此评价为凑字数).*"
+extra_noise_patterns:
+  - "(已晒单).*"
+extra_fields:
+  - score
+splitter:
+  min_len: 2
+  max_len: 120
+write_csv: false

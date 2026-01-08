@@ -48,30 +48,61 @@ def read_terms(path: Path) -> List[str]:
     return terms
 
 
-def load_config(cfg_path: Path) -> Tuple[str, List[Tuple[str, str, Path]], Dict]:
-    cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
+def load_config(cfg_path: Path):
+    cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
     domain = cfg.get("domain", "unknown")
-    items: List[Tuple[str, str, Path]] = []
-    for a in cfg["aspects"]:
-        l1 = a["l1"]
-        for l2, lex in a["l2"].items():
-            lex_path = Path(lex)
-            if not lex_path.is_absolute():
-                # 支持相对路径：相对于项目根目录（运行时 cwd 为 repo root）
+    items = []
+
+    # 旧结构：顶层 aspects: [{l1:..., l2:{<l2>: <lex_path>}}]
+    if "aspects" in cfg:
+        for a in cfg["aspects"]:
+            l1 = a["l1"]
+            for l2, lex in a["l2"].items():
                 lex_path = Path(lex)
-            items.append((l1, l2, lex_path))
-    return domain, items, cfg.get("settings", {})
+                if not lex_path.is_absolute():
+                    lex_path = Path(lex)  # 相对路径：相对于 repo root
+                items.append((l1, l2, lex_path))
+        return domain, items, cfg.get("settings", {})
+
+    # 新结构：顶层 l1: [{name, aliases, l2:[{name, terms:[]}, ...]}]
+    if "l1" in cfg:
+        for a in cfg["l1"]:
+            l1 = a.get("name") or a.get("l1") or "未命名"
+            aliases = a.get("aliases") or []
+            # 可选：用 L1 aliases 兜底命中（映射到一个虚拟 L2）
+            if aliases:
+                items.append((l1, "_L1", aliases))
+
+            for l2obj in a.get("l2") or []:
+                l2 = l2obj.get("name") or "未命名"
+                terms = l2obj.get("terms") or []
+                if terms:
+                    items.append((l1, l2, terms))
+        return domain, items, cfg.get("settings", {})
+
+    raise KeyError("config missing top-level key: 'aspects' (old) or 'l1' (new)")
 
 
-def build_matcher(items: List[Tuple[str, str, Path]]):
+def build_matcher(items):
     kp = KeywordProcessor(case_sensitive=False)
     kw2aspect: Dict[str, Tuple[str, str]] = {}
     overlaps = defaultdict(list)
 
-    for l1, l2, lex_path in items:
-        if not lex_path.exists():
-            raise FileNotFoundError(f"lexicon 不存在：{lex_path}")
-        for kw in read_terms(lex_path):
+    def iter_terms(lex):
+        # 旧结构：lex 是 Path（词表文件）
+        if isinstance(lex, Path):
+            if not lex.exists():
+                raise FileNotFoundError(f"lexicon 不存在：{lex}")
+            return read_terms(lex)
+
+        # 新结构：lex 是 list/tuple/set（terms 内联）
+        if isinstance(lex, (list, tuple, set)):
+            return [str(x).strip() for x in lex if str(x).strip()]
+
+        raise TypeError(f"unsupported lexicon spec: {type(lex)}")
+
+    for l1, l2, lex in items:
+        for kw in iter_terms(lex):
             k = kw.strip()
             if not k or RE_ONLY_DIGIT.match(k) or RE_ONLY_PUNC.match(k):
                 continue

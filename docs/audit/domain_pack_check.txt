@@ -1,0 +1,4 @@
+﻿OK  configs/domains/phone/aspects.yaml
+OK  configs/domains/car/aspects.yaml
+OK  configs/domains/laptop/aspects.yaml
+OK  configs/domains/beauty/aspects.yaml

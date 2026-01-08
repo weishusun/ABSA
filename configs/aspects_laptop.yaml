@@ -1,0 +1,112 @@
+domain: laptop
+version: 0.1
+l1:
+  - name: 性能与游戏
+    aliases: [性能, CPU, GPU, 显卡, 跑分, 帧率, 游戏]
+    l2:
+      - name: CPU与多任务
+        terms: [CPU, 单核, 多核, 多任务, 渲染, 编译]
+      - name: GPU与游戏帧率
+        terms: [GPU, 显卡, 帧率, 掉帧, 游戏, DLSS, 光追]
+      - name: 内存与硬盘
+        terms: [内存, RAM, 频率, 硬盘, SSD, 读写, 容量]
+
+  - name: 散热与噪音
+    aliases: [散热, 温度, 风扇, 噪音, 热]
+    l2:
+      - name: 温度与热管理
+        terms: [温度, 过热, 降频, 热, 烫, 温控]
+      - name: 风扇与噪音
+        terms: [风扇, 噪音, 呼啸, 声音, 分贝]
+      - name: 性能模式与功耗
+        terms: [增强模式, 性能模式, 平衡模式, 功耗, TDP]
+
+  - name: 屏幕与显示
+    aliases: [屏幕, 亮度, 色彩, 分辨率, 刷新率, OLED, IPS]
+    l2:
+      - name: 亮度与色彩
+        terms: [亮度, 色彩, 色准, HDR, 广色域]
+      - name: 刷新率与响应
+        terms: [刷新率, 120Hz, 144Hz, 响应, 拖影]
+      - name: 分辨率与比例
+        terms: [分辨率, 2K, 3K, 4K, 16:10, 16:9]
+
+  - name: 续航与充电
+    aliases: [续航, 电池, 充电, PD, 适配器]
+    l2:
+      - name: 电池续航
+        terms: [续航, 电池, 掉电, 待机, 续航时间]
+      - name: 充电与PD
+        terms: [充电, PD, 快充, 适配器, 充电器]
+      - name: 功耗与省电
+        terms: [功耗, 省电, 节能, 亮度, 省电模式]
+
+  - name: 键盘与触控
+    aliases: [键盘, 触控板, 手感, 键程, 误触]
+    l2:
+      - name: 键盘手感
+        terms: [键盘, 手感, 键程, 回弹, 背光]
+      - name: 触控板体验
+        terms: [触控板, 触摸板, 手势, 精准, 误触]
+      - name: 指纹与输入体验
+        terms: [指纹, 解锁, 输入, 延迟]
+
+  - name: 便携与做工
+    aliases: [重量, 厚度, 便携, 做工, 材质, 品控]
+    l2:
+      - name: 便携性
+        terms: [重量, 厚度, 便携, 轻薄, 携带]
+      - name: 材质与结构
+        terms: [材质, 金属, A面, 转轴, 松动, 机身]
+      - name: 品控与瑕疵
+        terms: [品控, 瑕疵, 漏光, 死点, 缺陷]
+
+  - name: 接口与扩展
+    aliases: [接口, USB, Type-C, 雷电, HDMI, 读卡器]
+    l2:
+      - name: Type-C与雷电
+        terms: [Type-C, USB-C, 雷电, Thunderbolt, PD]
+      - name: 视频与外接
+        terms: [HDMI, DP, 外接显示器, 投屏]
+      - name: 读卡与USB-A
+        terms: [读卡器, SD卡, USB-A, 网口]
+
+  - name: 网络与外设
+    aliases: [WiFi, 无线, 蓝牙, 摄像头, 麦克风, 音响]
+    l2:
+      - name: Wi-Fi与蓝牙
+        terms: [WiFi, 无线, 蓝牙, 断连, 延迟]
+      - name: 摄像头与麦克风
+        terms: [摄像头, 画质, 麦克风, 降噪, 视频会议]
+      - name: 音响与扬声器
+        terms: [音响, 扬声器, 音质, 低音, 破音]
+
+  - name: 系统与软件
+    aliases: [系统, 驱动, 蓝屏, 稳定, 预装, BIOS]
+    l2:
+      - name: 稳定性与故障
+        terms: [蓝屏, 死机, 卡死, 崩溃, 黑屏, 重启]
+      - name: 驱动与BIOS
+        terms: [驱动, BIOS, 固件, 更新, 兼容]
+      - name: 预装与体验
+        terms: [预装, 广告, 管家, 控制中心, 软件]
+
+  - name: 外观与设计
+    aliases: [外观, 颜值, 设计, 配色, 灯效]
+    l2:
+      - name: 设计与配色
+        terms: [外观, 颜值, 设计, 配色, 质感]
+      - name: 灯效与细节
+        terms: [灯效, RGB, LOGO灯, 氛围灯]
+
+  - name: 价格与售后
+    aliases: [价格, 性价比, 售后, 保修, 退换, 物流]
+    l2:
+      - name: 价格与性价比
+        terms: [价格, 性价比, 促销, 国补, 优惠]
+      - name: 售后与保修
+        terms: [售后, 保修, 维修, 换新, 退货, 质保]
+      - name: 物流与包装
+        terms: [物流, 包装, 到货, 破损, 发货]
+
+other_bucket_name: 其他

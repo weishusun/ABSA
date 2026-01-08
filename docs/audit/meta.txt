@@ -1,0 +1,5 @@
+﻿time_utc:   2026-01-06 15:42:26Z
+repo_root:  C:\Users\weish\ABSA
+pwsh:       5.1.26100.7462
+python:     Python 3.11.7
+pip:        pip 25.3 from C:\Users\weish\ABSA\.venv\Lib\site-packages\pip (python 3.11) 
