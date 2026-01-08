@@ -100,7 +100,18 @@ def transform_batch(batch: pd.DataFrame) -> pd.DataFrame:
     frame["domain"] = frame["domain"].astype("string")
     frame["l1"] = frame["l1"].astype("string")
     frame["sentiment"] = frame["sentiment"].apply(normalize_sentiment).astype("string")
-    ctime = pd.to_datetime(frame.get("ctime"), errors="coerce", utc=True)
+    # ctime is epoch seconds stored as string (e.g. "1766475000")
+    ctime_raw = frame.get("ctime")
+
+    # 1) coerce to numeric; non-numeric become NaN
+    ctime_num = pd.to_numeric(ctime_raw, errors="coerce")
+
+    # 2) parse as unix epoch seconds (UTC)
+    ctime = pd.to_datetime(ctime_num, errors="coerce", unit="s", utc=True)
+
+    # 3) day derived from UTC date
+    day = ctime.dt.date
+
     frame["day"] = ctime.dt.tz_localize(None).dt.normalize().dt.date
     if "weight" in frame.columns:
         frame["weight"] = (
