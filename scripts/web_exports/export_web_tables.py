@@ -7,7 +7,7 @@ import shutil
 from dataclasses import dataclass
 from datetime import datetime, date
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Sequence
 
 import pandas as pd
 
@@ -132,6 +132,296 @@ def build_empty_tables(domain: str, l1_list: List[str]) -> Dict[str, pd.DataFram
     }
 
 
+SENTIMENT_MAP = {
+    "POS": "POS",
+    "POSITIVE": "POS",
+    "NEG": "NEG",
+    "NEGATIVE": "NEG",
+    "NEU": "NEU",
+    "NEUTRAL": "NEU",
+}
+
+COUNT_COLUMNS = ["pos_cnt", "neg_cnt", "neu_cnt", "total_cnt"]
+PRODUCT_LIST_COLUMNS = ["domain", "product_id", "brand", "model", "first_day", "last_day", "total_cnt"]
+L1_PIE_BY_PRODUCT_COLUMNS = [
+    "domain",
+    "product_id",
+    "l1",
+    "pos_cnt",
+    "neg_cnt",
+    "neu_cnt",
+    "total_cnt",
+    "first_day",
+    "last_day",
+]
+L1_DAILY_BY_PRODUCT_COLUMNS = ["domain", "product_id", "l1", "day", "pos_cnt", "neg_cnt", "neu_cnt", "total_cnt"]
+L1_WEEKLY_BY_PRODUCT_COLUMNS = [
+    "domain",
+    "product_id",
+    "l1",
+    "week_start",
+    "week_end",
+    "pos_cnt",
+    "neg_cnt",
+    "neu_cnt",
+    "total_cnt",
+]
+L1_PIE_ALL_COLUMNS = ["domain", "l1", "pos_cnt", "neg_cnt", "neu_cnt", "total_cnt", "first_day", "last_day"]
+L1_DAILY_ALL_COLUMNS = ["domain", "l1", "day", "pos_cnt", "neg_cnt", "neu_cnt", "total_cnt"]
+L1_WEEKLY_ALL_COLUMNS = [
+    "domain",
+    "l1",
+    "week_start",
+    "week_end",
+    "pos_cnt",
+    "neg_cnt",
+    "neu_cnt",
+    "total_cnt",
+]
+
+EMPTY_COLUMN_DTYPES = {
+    "domain": "string",
+    "product_id": "string",
+    "brand": "string",
+    "model": "string",
+    "l1": "string",
+    "week_start": "datetime64[ns]",
+    "week_end": "datetime64[ns]",
+    "day": "datetime64[ns]",
+    "first_day": "datetime64[ns]",
+    "last_day": "datetime64[ns]",
+    "pos_cnt": "int64",
+    "neg_cnt": "int64",
+    "neu_cnt": "int64",
+    "total_cnt": "int64",
+}
+
+
+def first_non_null(series: pd.Series) -> object:
+    idx = series.first_valid_index()
+    return series.loc[idx] if idx is not None else pd.NA
+
+
+def ensure_string_columns(df: pd.DataFrame, columns: Sequence[str]) -> None:
+    for column in columns:
+        if column in df:
+            df[column] = df[column].astype("string")
+
+
+def ensure_int_columns(df: pd.DataFrame, columns: Sequence[str]) -> None:
+    for column in columns:
+        if column in df:
+            df[column] = df[column].fillna(0).astype("int64")
+
+
+def ensure_date_columns(df: pd.DataFrame, columns: Sequence[str]) -> None:
+    for column in columns:
+        if column in df:
+            df[column] = pd.to_datetime(df[column], errors="coerce").dt.date
+
+
+def empty_frame(columns: Sequence[str]) -> pd.DataFrame:
+    data = {}
+    for column in columns:
+        dtype = EMPTY_COLUMN_DTYPES.get(column, "object")
+        data[column] = pd.Series(dtype=dtype)
+    return pd.DataFrame(data)
+
+
+def filter_last_n_days(df: pd.DataFrame, latest_day: pd.Timestamp, window_days: int) -> pd.DataFrame:
+    if pd.isna(latest_day):
+        return df.iloc[0:0]
+    start = latest_day - pd.Timedelta(days=window_days - 1)
+    mask = df["day"].notna() & (df["day"] >= start) & (df["day"] <= latest_day)
+    return df.loc[mask]
+
+
+def filter_last_n_weeks(df: pd.DataFrame, latest_week_start: pd.Timestamp, window_weeks: int) -> pd.DataFrame:
+    if pd.isna(latest_week_start):
+        return df.iloc[0:0]
+    start = latest_week_start - pd.Timedelta(weeks=window_weeks - 1)
+    mask = df["week_start"].notna() & (df["week_start"] >= start) & (df["week_start"] <= latest_week_start)
+    return df.loc[mask]
+
+
+def preprocess_web_ready(df: pd.DataFrame, domain: str) -> pd.DataFrame:
+    if df.empty:
+        return df.copy()
+    frame = df.copy()
+    domain_series = frame["domain"] if "domain" in frame else pd.Series(pd.NA, index=frame.index)
+    domain_series = domain_series.fillna(domain)
+    frame["domain"] = domain_series.astype("string")
+    product_id_series = frame["product_id"] if "product_id" in frame else pd.Series(pd.NA, index=frame.index)
+    frame["product_id"] = product_id_series.fillna("unknown_product").astype("string")
+    brand_series = frame["brand"] if "brand" in frame else pd.Series(pd.NA, index=frame.index)
+    frame["brand"] = brand_series.astype("string")
+    model_series = frame["model"] if "model" in frame else pd.Series(pd.NA, index=frame.index)
+    frame["model"] = model_series.astype("string")
+    l1_series = frame["l1"] if "l1" in frame else pd.Series(pd.NA, index=frame.index)
+    frame["l1"] = l1_series.astype("string")
+    sentiment_series = frame["sentiment"] if "sentiment" in frame else pd.Series(pd.NA, index=frame.index)
+    sentiment_upper = sentiment_series.astype("string").str.upper()
+    frame["sentiment"] = sentiment_upper.map(SENTIMENT_MAP).fillna("NEU")
+    weight_series = frame["weight"] if "weight" in frame else pd.Series(1, index=frame.index)
+    frame["weight"] = pd.to_numeric(weight_series, errors="coerce").fillna(1).astype("int64")
+    day_series = frame["day"] if "day" in frame else pd.Series(pd.NaT, index=frame.index)
+    frame["day"] = pd.to_datetime(day_series, errors="coerce").dt.normalize()
+    frame["week_start"] = pd.NaT
+    frame["week_end"] = pd.NaT
+    valid_day = frame["day"].notna()
+    if valid_day.any():
+        week_start = frame.loc[valid_day, "day"] - pd.to_timedelta(
+            frame.loc[valid_day, "day"].dt.weekday, unit="d"
+        )
+        frame.loc[valid_day, "week_start"] = week_start
+        frame.loc[valid_day, "week_end"] = week_start + pd.Timedelta(days=6)
+    frame["pos_cnt"] = (frame["sentiment"] == "POS").astype("int64") * frame["weight"]
+    frame["neg_cnt"] = (frame["sentiment"] == "NEG").astype("int64") * frame["weight"]
+    frame["neu_cnt"] = (frame["sentiment"] == "NEU").astype("int64") * frame["weight"]
+    frame["total_cnt"] = frame["pos_cnt"] + frame["neg_cnt"] + frame["neu_cnt"]
+    return frame
+
+
+def build_product_list(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        return empty_frame(PRODUCT_LIST_COLUMNS)
+    grouped = df.groupby(["domain", "product_id"], as_index=False)
+    result = grouped.agg(
+        brand=("brand", first_non_null),
+        model=("model", first_non_null),
+        first_day=("day", "min"),
+        last_day=("day", "max"),
+        total_cnt=("total_cnt", "sum"),
+    )
+    ensure_string_columns(result, ["domain", "product_id", "brand", "model"])
+    ensure_date_columns(result, ["first_day", "last_day"])
+    ensure_int_columns(result, ["total_cnt"])
+    return result[PRODUCT_LIST_COLUMNS]
+
+
+def build_l1_pie_by_product(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        return empty_frame(L1_PIE_BY_PRODUCT_COLUMNS)
+    grouped = df.groupby(["domain", "product_id", "l1"], as_index=False)
+    result = grouped.agg(
+        pos_cnt=("pos_cnt", "sum"),
+        neg_cnt=("neg_cnt", "sum"),
+        neu_cnt=("neu_cnt", "sum"),
+        total_cnt=("total_cnt", "sum"),
+        first_day=("day", "min"),
+        last_day=("day", "max"),
+    )
+    ensure_string_columns(result, ["domain", "product_id", "l1"])
+    ensure_date_columns(result, ["first_day", "last_day"])
+    ensure_int_columns(result, COUNT_COLUMNS)
+    return result[L1_PIE_BY_PRODUCT_COLUMNS]
+
+
+def build_l1_daily_last7_by_product(df: pd.DataFrame, latest_day: pd.Timestamp) -> pd.DataFrame:
+    window = filter_last_n_days(df, latest_day, 7)
+    if window.empty:
+        return empty_frame(L1_DAILY_BY_PRODUCT_COLUMNS)
+    grouped = window.groupby(["domain", "product_id", "l1", "day"], as_index=False)
+    result = grouped.agg(
+        pos_cnt=("pos_cnt", "sum"),
+        neg_cnt=("neg_cnt", "sum"),
+        neu_cnt=("neu_cnt", "sum"),
+        total_cnt=("total_cnt", "sum"),
+    )
+    ensure_string_columns(result, ["domain", "product_id", "l1"])
+    ensure_int_columns(result, COUNT_COLUMNS)
+    ensure_date_columns(result, ["day"])
+    return result[L1_DAILY_BY_PRODUCT_COLUMNS]
+
+
+def build_l1_weekly_last4_by_product(df: pd.DataFrame, latest_week_start: pd.Timestamp) -> pd.DataFrame:
+    window = filter_last_n_weeks(df, latest_week_start, 4)
+    if window.empty:
+        return empty_frame(L1_WEEKLY_BY_PRODUCT_COLUMNS)
+    grouped = window.groupby(["domain", "product_id", "l1", "week_start"], as_index=False)
+    result = grouped.agg(
+        pos_cnt=("pos_cnt", "sum"),
+        neg_cnt=("neg_cnt", "sum"),
+        neu_cnt=("neu_cnt", "sum"),
+        total_cnt=("total_cnt", "sum"),
+    )
+    result["week_end"] = result["week_start"] + pd.Timedelta(days=6)
+    ensure_string_columns(result, ["domain", "product_id", "l1"])
+    ensure_int_columns(result, COUNT_COLUMNS)
+    ensure_date_columns(result, ["week_start", "week_end"])
+    return result[L1_WEEKLY_BY_PRODUCT_COLUMNS]
+
+
+def build_l1_pie_all_products(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        return empty_frame(L1_PIE_ALL_COLUMNS)
+    grouped = df.groupby(["domain", "l1"], as_index=False)
+    result = grouped.agg(
+        pos_cnt=("pos_cnt", "sum"),
+        neg_cnt=("neg_cnt", "sum"),
+        neu_cnt=("neu_cnt", "sum"),
+        total_cnt=("total_cnt", "sum"),
+        first_day=("day", "min"),
+        last_day=("day", "max"),
+    )
+    ensure_string_columns(result, ["domain", "l1"])
+    ensure_date_columns(result, ["first_day", "last_day"])
+    ensure_int_columns(result, COUNT_COLUMNS)
+    return result[L1_PIE_ALL_COLUMNS]
+
+
+def build_l1_daily_last7_all_products(df: pd.DataFrame, latest_day: pd.Timestamp) -> pd.DataFrame:
+    window = filter_last_n_days(df, latest_day, 7)
+    if window.empty:
+        return empty_frame(L1_DAILY_ALL_COLUMNS)
+    grouped = window.groupby(["domain", "l1", "day"], as_index=False)
+    result = grouped.agg(
+        pos_cnt=("pos_cnt", "sum"),
+        neg_cnt=("neg_cnt", "sum"),
+        neu_cnt=("neu_cnt", "sum"),
+        total_cnt=("total_cnt", "sum"),
+    )
+    ensure_string_columns(result, ["domain", "l1"])
+    ensure_int_columns(result, COUNT_COLUMNS)
+    ensure_date_columns(result, ["day"])
+    return result[L1_DAILY_ALL_COLUMNS]
+
+
+def build_l1_weekly_last4_all_products(df: pd.DataFrame, latest_week_start: pd.Timestamp) -> pd.DataFrame:
+    window = filter_last_n_weeks(df, latest_week_start, 4)
+    if window.empty:
+        return empty_frame(L1_WEEKLY_ALL_COLUMNS)
+    grouped = window.groupby(["domain", "l1", "week_start"], as_index=False)
+    result = grouped.agg(
+        pos_cnt=("pos_cnt", "sum"),
+        neg_cnt=("neg_cnt", "sum"),
+        neu_cnt=("neu_cnt", "sum"),
+        total_cnt=("total_cnt", "sum"),
+    )
+    result["week_end"] = result["week_start"] + pd.Timedelta(days=6)
+    ensure_string_columns(result, ["domain", "l1"])
+    ensure_int_columns(result, COUNT_COLUMNS)
+    ensure_date_columns(result, ["week_start", "week_end"])
+    return result[L1_WEEKLY_ALL_COLUMNS]
+
+
+def build_web_tables(df: pd.DataFrame, domain: str, l1_list: List[str]) -> Dict[str, pd.DataFrame]:
+    normalized = preprocess_web_ready(df, domain)
+    if normalized.empty:
+        return build_empty_tables(domain=domain, l1_list=l1_list)
+    df_l1 = normalized[normalized["l1"].notna()].copy()
+    latest_day = df_l1["day"].max() if not df_l1.empty else pd.NaT
+    latest_week_start = df_l1["week_start"].max() if not df_l1.empty else pd.NaT
+    return {
+        "product_list.parquet": build_product_list(normalized),
+        "l1_pie_alltime_by_product.parquet": build_l1_pie_by_product(df_l1),
+        "l1_daily_last7_by_product.parquet": build_l1_daily_last7_by_product(df_l1, latest_day),
+        "l1_weekly_last4_by_product.parquet": build_l1_weekly_last4_by_product(df_l1, latest_week_start),
+        "l1_pie_alltime_all_products.parquet": build_l1_pie_all_products(df_l1),
+        "l1_daily_last7_all_products.parquet": build_l1_daily_last7_all_products(df_l1, latest_day),
+        "l1_weekly_last4_all_products.parquet": build_l1_weekly_last4_all_products(df_l1, latest_week_start),
+    }
+
 def write_tables(out_tables_dir: Path, tables: Dict[str, pd.DataFrame]) -> List[str]:
     ensure_dir(out_tables_dir)
     written: List[str] = []
@@ -203,8 +493,6 @@ def main() -> int:
             "source": None,
         }
     else:
-        # 非 smoke：这里先定义“契约位”，避免你现在被迫绑定 routeb 的具体文件名。
-        # 后续模块 3-2/3-3 再把 routeb 的最终聚合产物固定到这个路径。
         web_ready = paths.domain_root(domain) / "sentiment" / "web_ready.parquet"
         if not web_ready.exists():
             raise FileNotFoundError(
@@ -212,12 +500,16 @@ def main() -> int:
                 f"Tip: run with --smoke first, or later fix RouteB to write sentiment/web_ready.parquet"
             )
         df = pd.read_parquet(web_ready)
-
-        # 这里按你最终契约来实现聚合；当前先占位抛错，防止静默生成错误表。
-        raise NotImplementedError(
-            "Non-smoke export is not implemented yet. "
-            "Module 3 will next define the exact columns of sentiment/web_ready.parquet and implement aggregation."
-        )
+        tables = build_web_tables(df, domain=domain, l1_list=l1_list)
+        outputs_written = write_tables(export_tables_dir, tables)
+        mode = "full"
+        inputs = {
+            "configs": {
+                "domain_yaml": str(domain_yaml),
+                "aspects_yaml": str(aspects_yaml),
+            },
+            "source": {"web_ready": str(web_ready)},
+        }
 
     ended_at = datetime.now().isoformat(timespec="seconds")
 
