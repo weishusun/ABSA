@@ -38,3 +38,9 @@
 - 内容：parquet/csv，含 overall/L1/L2/品牌/型号维度 POS/NEG/NEU 计数；L1 归并到 11 个桶。
 - 生产者：`export_web_tables_l1_11.py`
 - 消费者：Web UI / BI 报表。
+
+## Sentiment Web-Ready Fact (v1) — sentiment/web_ready.parquet（2026-01-08）
+- 路径约定：`sentiment/web_ready.parquet` 位于模型感知的共享输出目录，按 `domain/product_id/brand/model` 分层组织。
+- 必须字段：`domain`, `product_id`, `brand`, `model`, `l1`, `sentiment`, `day`, `weight`。
+- 可选字段：上游标签详情或聚合维度（如 `region`, `platform`, `source`）可以附加，但不影响主表结构。
+- 语义约定：数据可含重复行，系统按 `weight` 聚合；`sentiment` 规范化为 `POS` / `NEG` / `NEU`；`day` 为业务日期（YYYY-MM-DD）。
