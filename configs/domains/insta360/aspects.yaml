@@ -1,0 +1,44 @@
+domain: insta360
+version: 1.0
+l1:
+  - name: 影像画质
+    aliases: [画质, 视频, 拍照, 效果, 镜头]
+    l2:
+      - name: 全景能力
+        terms: [全景, 360, 缝合, 消失自拍杆, 全景航拍]
+      - name: 运动防抖
+        terms: [防抖, 稳定, FlowState, 抖动, 震动]
+      - name: 画质与色彩
+        terms: [清晰度, 分辨率, 4K, 8K, HDR, 色彩, 胶片滤镜]
+
+  - name: 硬件与续航
+    aliases: [硬件, 电池, 机身, 质量]
+    l2:
+      - name: 续航时间
+        terms: [续航, 电池, 掉电, 发热, 过热, 充电]
+      - name: 机身设计
+        terms: [便携, 重量, 手感, 材质, 屏幕, 防水]
+
+  - name: 易用性与软件
+    aliases: [使用, APP, 控制, 界面]
+    l2:
+      - name: 操作界面
+        terms: [操作, 菜单, 逻辑, 系统, 固件, 界面复杂]
+      - name: APP与剪辑
+        terms: [APP, 连接, 剪辑, 导出, 智能剪辑, 模板]
+
+  - name: 智能功能
+    aliases: [黑科技, 智拍, 追踪]
+    l2:
+      - name: AI与追踪
+        terms: [AI, 追踪, 跟随, 智能, 黑科技]
+      - name: 无人机控制
+        terms: [航拍, 避障, 飞控, 遥控, 新手入门]
+
+  - name: 价格与服务
+    aliases: [买, 钱, 售后, 客服]
+    l2:
+      - name: 性价比
+        terms: [价格, 优惠, 贵, 便宜, 价值, 补退]
+      - name: 售后服务
+        terms: [售后, 客服, 维修, 响应, 保修]

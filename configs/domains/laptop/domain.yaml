@@ -1,0 +1,19 @@
+domain: laptop
+content_field: content
+url_field: url
+platform_field: platform
+ctime_field: ctime
+like_field: likes
+reply_field: comments
+keep_emoji: false
+keep_english: true
+min_length: 3
+noise_suffix_patterns:
+  - "(电脑型号).*"
+extra_noise_patterns: []
+extra_fields:
+  - score
+splitter:
+  min_len: 2
+  max_len: 140
+write_csv: false

@@ -1,0 +1,33 @@
+usage: pipeline.py [-h] --domain DOMAIN [--run-id RUN_ID]
+                   --input-aspect-sentences INPUT_ASPECT_SENTENCES
+                   [--aspects-yaml ASPECTS_YAML] [--steps STEPS] [--resume]
+                   [--max-train-rows MAX_TRAIN_ROWS]
+                   [--train-pool-rows TRAIN_POOL_ROWS] [--shard-n SHARD_N]
+                   [--ds-batch-rows DS_BATCH_ROWS]
+                   [--step02-max-rows STEP02_MAX_ROWS]
+                   [--base-model BASE_MODEL] [--fp16]
+
+options:
+  -h, --help            show this help message and exit
+  --domain DOMAIN       phone|laptop|car|beauty
+  --run-id RUN_ID       run identifier; default auto {YYYYMMDD}_{domain}_v0
+  --input-aspect-sentences INPUT_ASPECT_SENTENCES
+                        Path to aspect_sentences.parquet (Step00 output)
+  --aspects-yaml ASPECTS_YAML
+                        Override aspects config path; default resolved by
+                        domain
+  --steps STEPS         Comma-separated steps to run, e.g., 01,02 or
+                        01,02,04,05
+  --resume              Pass --resume to step scripts when applicable
+  --max-train-rows MAX_TRAIN_ROWS
+                        Step01 max train rows
+  --train-pool-rows TRAIN_POOL_ROWS
+                        Step01 pool rows
+  --shard-n SHARD_N     Step01 shard count for aspect_pairs_ds
+  --ds-batch-rows DS_BATCH_ROWS
+                        Step01 ds batch rows
+  --step02-max-rows STEP02_MAX_ROWS
+                        Step02 max rows (0 = no cap)
+  --base-model BASE_MODEL
+                        Base model for step03/04
+  --fp16                Use --fp16 for step04

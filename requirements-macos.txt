@@ -1,0 +1,65 @@
+# requirements-macos.txt
+# macOS (Apple Silicon) 专用依赖配置
+# 
+# 安装说明:
+#   1. 首先安装 PyTorch (包含 MPS 支持):
+#      pip install torch torchvision torchaudio
+#   
+#   2. 然后安装其他依赖:
+#      pip install -r requirements-macos.txt
+#
+#   或者一次性安装:
+#      pip install torch torchvision torchaudio && pip install -r requirements-macos.txt
+
+# Core pipeline
+typer[all]>=0.12.3
+pandas>=2.2.2
+pyarrow>=17.0.0
+PyYAML>=6.0.1
+orjson>=3.10.7
+
+# I/O, tracing, utilities
+tqdm>=4.66.5
+loguru>=0.7.2
+python-dateutil>=2.9.0.post0
+xxhash>=3.5.0
+regex>=2024.7.24
+beautifulsoup4>=4.12.3
+lxml>=5.3.0
+
+# Excel export
+openpyxl>=3.1.5
+XlsxWriter>=3.2.0
+
+# Chinese text processing (lightweight)
+jieba>=0.42.1
+
+# ABSA / NLP modeling (inference + optional few-shot training)
+transformers>=4.44.2
+accelerate>=0.33.0
+sentence-transformers>=3.0.1
+setfit>=1.0.3
+datasets>=2.20.0
+scikit-learn>=1.5.1
+
+# PyTorch: macOS (Apple Silicon) 版本
+# 注意: PyTorch 需要单独安装，因为需要从官方源获取 MPS 支持版本
+# 安装命令: pip install torch torchvision torchaudio
+# 或者指定版本: pip install torch>=2.3.0 torchvision>=0.18.0 torchaudio>=2.3.0
+# 
+# 验证 MPS 支持:
+#   python -c "import torch; print(f'MPS available: {torch.backends.mps.is_available() if hasattr(torch.backends, \"mps\") else False}')"
+
+# DuckDB: 跨平台兼容版本
+duckdb>=0.10.0,<1.0.0
+
+# Optional quantization (macOS 上通常不需要，但可以安装)
+# bitsandbytes>=0.43.3
+
+# Dev / quality (optional)
+pytest>=8.3.2
+ruff>=0.6.9
+
+# Web UI (如果使用 app.py)
+streamlit>=1.28.0
+plotly>=5.17.0

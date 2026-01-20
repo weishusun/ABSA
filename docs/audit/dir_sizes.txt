@@ -1,0 +1,8 @@
+﻿scripts                  899,010 bytes
+configs                   34,502 bytes
+data               1,697,102,037 bytes
+outputs           21,695,431,929 bytes
+docs                       3,886 bytes
+review_pipeline          130,874 bytes
+aspects                  239,700 bytes
+.venv              5,254,330,298 bytes

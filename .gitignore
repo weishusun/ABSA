@@ -1,0 +1,39 @@
+# --- 1. 环境与敏感信息 (最重要) ---
+.venv/
+venv/
+.env
+.env.*
+.DS_Store
+
+# --- 2. 大型数据与输出目录 (防止推送卡死) ---
+# 你的项目特有的数据目录
+workspace_data/
+outputs/
+data/
+
+# 常见的机器学习大文件后缀 (务必加上)
+*.parquet
+*.arrow
+*.bin
+*.pt
+*.pth
+*.safetensors
+*.onnx
+*.zip
+*.tar.gz
+
+# --- 3. Python 缓存与构建文件 ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# --- 4. IDE 配置文件 ---
+.idea/
+.vscode/
