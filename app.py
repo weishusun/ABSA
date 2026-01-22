@@ -90,7 +90,27 @@ with st.sidebar:
 
     with st.container(border=True):
         st.subheader("2. 任务参数")
-        domain = st.selectbox("📦 领域 (Domain)", ["car", "phone", "laptop", "beauty"], index=0)
+        # 修改 app.py 侧边栏部分
+
+        domain_options = ["car", "phone", "laptop", "beauty", "➕ 自定义 (New...)"]
+        selected_domain_opt = st.selectbox("📦 领域 (Domain)", domain_options)
+
+        if selected_domain_opt == "➕ 自定义 (New...)":
+            # 让用户输入新的领域代码，例如 "coffee"
+            new_domain_name = st.text_input("请输入新领域名称 (英文)", placeholder="例如: coffee").strip()
+            if new_domain_name:
+                domain = new_domain_name
+                is_custom_mode = True
+            else:
+                st.warning("请输入领域名称以继续")
+                st.stop()
+        else:
+            domain = selected_domain_opt
+            is_custom_mode = False
+
+        # 动态计算路径
+        CONFIG_DIR_CUSTOM = WORKSPACE / "configs" / "domains" / domain
+        DATA_DIR_CUSTOM = WORKSPACE / "inputs" / domain
         run_id = st.text_input("🏷️ 任务标识 (Run ID)", value="prod_v1_full")
 
     st.markdown("---")
@@ -253,6 +273,27 @@ paths = get_files(domain)
 # 0️⃣ 数据准备 (新增翻译功能)
 # -----------------------------------------------------------------------------
 if page == "0️⃣ 数据准备":
+    if is_custom_mode:
+        st.info(f"正在为自定义领域【{domain}】上传数据")
+        c1, c2 = st.columns(2)
+        u_brand = c1.text_input("品牌 (Brand)", value="General")
+        u_model = c2.text_input("型号 (Model)", value="General")
+
+        uploaded_files = st.file_uploader("上传评论数据 (JSON/JSONL)", accept_multiple_files=True)
+
+        if uploaded_files and st.button("📥 保存并归档"):
+            target_dir = INPUTS_DIR / domain / u_brand / u_model
+            target_dir.mkdir(parents=True, exist_ok=True)
+            for uf in uploaded_files:
+                with open(target_dir / uf.name, "wb") as f:
+                    f.write(uf.getbuffer())
+            st.success(f"已归档 {len(uploaded_files)} 个文件到 {target_dir}")
+            # 【新增建议】: 停顿 1 秒让用户看清成功提示，然后自动刷新页面
+            # 这样下方的 "1. 扫描与清洗" 区域就能立刻检测到刚上传的文件了
+            import time
+
+            time.sleep(1)
+            st.rerun()
     st.title("🗂️ Step 00: 数据准备 & 翻译")
     current_domain_input_dir = INPUTS_DIR / domain
 
@@ -578,7 +619,81 @@ elif page == "1️⃣ 覆盖率实验室":
                 if paths['config'].exists():
                     st.session_state.yaml_content = paths['config'].read_text(encoding='utf-8')
                 else:
-                    st.session_state.yaml_content = ""
+                    st.warning(f"⚠️ 尚未检测到领域配置: `{paths['config'].name}`")
+
+                    st.info("💡 你可以利用 LLM 快速生成一份初始配置，或者手动创建。")
+
+                    # 创建两列，左边自动生成，右边手动创建
+                    gen_c1, gen_c2 = st.columns([2, 1])
+
+                    with gen_c1:
+                        if st.button("✨ AI 自动生成配置 (推荐)", type="primary", use_container_width=True):
+                            api_key = os.environ.get("OPENAI_API_KEY")
+                            if not api_key:
+                                st.error("❌ 请先在左侧侧边栏配置 API Key")
+                            else:
+                                try:
+                                    from openai import OpenAI
+
+                                    client = OpenAI(
+                                        api_key=api_key,
+                                        base_url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
+                                    )
+
+                                    model_name = os.environ.get("OPENAI_MODEL_NAME", "gpt-3.5-turbo")
+
+                                    with st.spinner(f"正在让 {model_name} 为【{domain}】领域编写规则..."):
+                                        # 构造提示词
+                                        prompt = f"""
+                                                        请为【{domain}】领域生成一个细粒度情感分析的 Aspect 配置文件（YAML格式）。
+                                                        请直接输出 YAML 内容，不要包含 markdown 代码块标记。
+
+                                                        要求：
+                                                        1. 包含 4-6 个一级维度 (l1)，例如：价格、质量、服务、功能等（根据领域特性调整）。
+                                                        2. 每个 l1 下包含 2-5 个二级维度 (l2)。
+                                                        3. 每个 l2 下包含 5-10 个常见中文同义词/关键词 (terms)。
+                                                        4. 严格符合以下 YAML 结构示例：
+
+                                                        l1:
+                                                          - name: "一级维度名"
+                                                            l2:
+                                                              - name: "二级维度名"
+                                                                terms: ["词1", "词2", "词3"]
+                                                        """
+
+                                        response = client.chat.completions.create(
+                                            model=model_name,
+                                            messages=[{"role": "user", "content": prompt}],
+                                            temperature=0.7
+                                        )
+
+                                        yaml_content = response.choices[0].message.content
+                                        # 清理可能存在的 markdown 标记
+                                        yaml_content = yaml_content.replace("```yaml", "").replace("```", "").strip()
+
+                                        # 确保目录存在
+                                        paths['config'].parent.mkdir(parents=True, exist_ok=True)
+
+                                        # 写入文件
+                                        with open(paths['config'], "w", encoding="utf-8") as f:
+                                            f.write(yaml_content)
+
+                                        st.success("🎉 配置生成成功！正在刷新...")
+                                        time.sleep(1)
+                                        st.rerun()
+
+                                except Exception as e:
+                                    st.error(f"生成失败: {e}")
+
+                    with gen_c2:
+                        if st.button("📝 手动创建空白文件", use_container_width=True):
+                            # 确保目录存在
+                            paths['config'].parent.mkdir(parents=True, exist_ok=True)
+                            # 写入一个简单的模板
+                            default_template = """l1:\n  - name: "示例维度"\n    l2:\n      - name: "示例细项"\n        terms: ["关键词1", "关键词2"]"""
+                            with open(paths['config'], "w", encoding="utf-8") as f:
+                                f.write(default_template)
+                            st.rerun()
 
             if "pending_yaml" not in st.session_state:
                 st.session_state.pending_yaml = None
