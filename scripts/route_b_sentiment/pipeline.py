@@ -268,10 +268,10 @@ def step05(args: argparse.Namespace, rr: Path, step04_out: Dict) -> Dict:
         str(SCRIPT_DIR / "sentiment_05_aggregate_and_build_excels.py"),
         "--pred-ds", step04_out["pred_ds"],
         "--out-dir", str(out_dir),
+        "--overwrite",  # <--- 【新增】强制覆盖旧 Excel，不再报错
     ]
     run_cmd(cmd)
     return {"agg_dir": str(out_dir), "step05_dir": str(out_dir)}
-
 
 def step_web(args: argparse.Namespace, rr: Path, step04_out: Dict) -> Dict:
     out_dir = step_dir(rr, "web")
