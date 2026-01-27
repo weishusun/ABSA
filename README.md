@@ -461,26 +461,7 @@ ABSA/
 - [流水线运行手册](docs/PIPELINE_RUNBOOK.md) - 命令行使用指南
 - [数据契约说明](docs/IO_CONTRACTS.md) - 输入输出格式规范
 
----
 
-## 🤝 贡献指南
 
-欢迎提交 Issue 和 Pull Request！
-
----
-
-## 📄 许可证
-
-本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
-
----
-
-## ⭐ Star History
-
-如果这个项目对您有帮助，请给我们一个 Star ⭐！
-
----
-
-**Made with ❤️ by the ABSA Team**
 
 
