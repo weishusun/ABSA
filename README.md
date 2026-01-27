@@ -564,6 +564,9 @@ python -u scripts/route_b_sentiment/pipeline.py \
 - 重复运行 Step 02/05 会覆盖输出（建议换 run_id）
 
 ---
+##最后生成统计数据
+-python scripts/web/export_product_json.py --domain phone
+---
 
 ## 更多文档
 
