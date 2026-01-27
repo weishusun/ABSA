@@ -1063,7 +1063,7 @@ elif page == "3️⃣ 数据看板 (DB版)":
                 brands = []
 
             if not brands:
-                st.warning("⚠️ 数据库中暂无有效品牌数据，请先点击上方“聚合”按钮或检查 Step 00 数据清洗。")
+                st.warning("⚠️ 数据库中暂无有效品牌数据...")
             else:
                 with f_col1:
                     sel_brands = st.multiselect("选择品牌 (Brand)", brands, default=brands[:5])
@@ -1071,19 +1071,26 @@ elif page == "3️⃣ 数据看板 (DB版)":
                 # 级联获取型号
                 models = []
                 if sel_brands:
-                    ph = ",".join([f"'{b}'" for b in sel_brands])
-                    models = pd.read_sql(
-                        f"SELECT DISTINCT model FROM daily_sentiment_stats WHERE brand IN ({ph}) AND model IS NOT NULL ORDER BY model",
-                        conn)['model'].tolist()
+                    # 【修复点 1】: 这里的 SQL 也需要转义，否则选了 Kiehl's 后型号列表会加载失败
+                    safe_brands_list = [b.replace("'", "''") for b in sel_brands]
+                    ph = ",".join([f"'{b}'" for b in safe_brands_list])
+
+                    models_sql = f"SELECT DISTINCT model FROM daily_sentiment_stats WHERE brand IN ({ph}) AND model IS NOT NULL ORDER BY model"
+                    models = pd.read_sql(models_sql, conn)['model'].tolist()
+
                 with f_col2:
                     sel_models = st.multiselect("选择型号 (Model)", models, default=models[:10] if models else [])
 
                 st.divider()
 
                 if sel_brands and sel_models:
-                    # 构造 SQL 条件
-                    brands_ph = ",".join([f"'{x}'" for x in sel_brands])
-                    models_ph = ",".join([f"'{x}'" for x in sel_models])
+                    # 【修复点 2】: 构造安全的 SQL 条件，防止 's 导致的 Syntax Error
+                    safe_brands = [x.replace("'", "''") for x in sel_brands]
+                    safe_models = [x.replace("'", "''") for x in sel_models]
+
+                    brands_ph = ",".join([f"'{x}'" for x in safe_brands])
+                    models_ph = ",".join([f"'{x}'" for x in safe_models])
+
                     where_clause = f"brand IN ({brands_ph}) AND model IN ({models_ph})"
 
                     # --- 核心指标 KPI ---
